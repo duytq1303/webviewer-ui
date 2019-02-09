@@ -10,7 +10,8 @@ import core from 'core';
 
 import apis from 'src/apis';
 
-import App from 'components/App';
+// import App from 'components/App';
+import HomeViewer from 'components/HomeViewer';
 import rootReducer from 'reducers/rootReducer';
 import { engineTypes } from 'constants/types';
 import LayoutMode from 'constants/layoutMode';
@@ -122,7 +123,7 @@ if (window.CanvasRenderingContext2D) {
     ReactDOM.render(
       <Provider store={store}>
         <I18nextProvider i18n={i18n}>
-          <App removeEventHandlers={removeEventHandlers} />
+          <HomeViewer removeEventHandlers={removeEventHandlers} />
         </I18nextProvider>
       </Provider>,
       document.getElementById('app'),
