@@ -158,8 +158,7 @@ export default {
     pageLabels: [],
     noteDateFormat: 'MMM D, h:mma',
     colorMap: copyMapWithDataProperties('currentPalette', 'iconColor'),
-    swipeOrientation: 'horizontal',
-    customNoteFilter: null
+    swipeOrientation: 'horizontal'
   },
   search: {
     listeners: [],

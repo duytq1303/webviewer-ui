@@ -19,7 +19,6 @@ class NotesPanel extends React.PureComponent {
     display: PropTypes.string.isRequired,
     sortStrategy: PropTypes.string.isRequired,
     pageLabels: PropTypes.array.isRequired,
-    customNoteFilter: PropTypes.func,
     t: PropTypes.func.isRequired
   }
   
@@ -38,14 +37,6 @@ class NotesPanel extends React.PureComponent {
     core.addEventListener('documentUnloaded', this.onDocumentUnloaded);
     core.addEventListener('annotationChanged', this.onAnnotationChanged);
     core.addEventListener('annotationHidden', this.onAnnotationChanged);
-  }
-
-  componentDidUpdate(prevProps) {
-    if (prevProps.customNoteFilter !== this.props.customNoteFilter) {
-      const notesToRender = this.filterAnnotations(this.rootAnnotations, this.state.searchInput);
-      this.setVisibleNoteIds(notesToRender);
-      this.setState({ notesToRender });
-    }
   }
 
   componentWillUnmount() {
@@ -88,31 +79,22 @@ class NotesPanel extends React.PureComponent {
   }
 
   filterAnnotations = (annotations, searchInput) => {
-    const { customNoteFilter } = this.props;
-    let filteredAnnotations = annotations;
-    
-    if (customNoteFilter) {
-      filteredAnnotations = filteredAnnotations.filter(customNoteFilter);
+    if (!searchInput.trim()) {
+      return annotations;
     }
 
-    if (searchInput.trim()) {
-      filteredAnnotations = filteredAnnotations.filter(rootAnnotation => this.filterNoteBasedOnInput(rootAnnotation, searchInput));
-    }
+    return annotations.filter(rootAnnotation => {
+      const replies = rootAnnotation.getReplies();
+      // reply is also a kind of annotation
+      // https://www.pdftron.com/api/web/CoreControls.AnnotationManager.html#createAnnotationReply__anchor
+      const annotations = [ rootAnnotation, ...replies ];
 
-    return filteredAnnotations;
-  }
+      return annotations.some(annotation => {
+        const content = annotation.getContents();
+        const authorName = core.getDisplayAuthor(annotation);
 
-  filterNoteBasedOnInput = (rootAnnotation, searchInput) => {
-    const replies = rootAnnotation.getReplies();
-    // reply is also a kind of annotation
-    // https://www.pdftron.com/api/web/CoreControls.AnnotationManager.html#createAnnotationReply__anchor
-    const annotations = [ rootAnnotation, ...replies ];
-
-    return annotations.some(annotation => {
-      const content = annotation.getContents();
-      const authorName = core.getDisplayAuthor(annotation);
-
-      return this.isInputIn(content, searchInput) || this.isInputIn(authorName, searchInput);
+        return this.isInputIn(content, searchInput) || this.isInputIn(authorName, searchInput);
+      });
     });
   }
 
@@ -220,8 +202,7 @@ class NotesPanel extends React.PureComponent {
 const mapStatesToProps = state => ({
   sortStrategy: selectors.getSortStrategy(state),
   isDisabled: selectors.isElementDisabled(state, 'notesPanel'),
-  pageLabels: selectors.getPageLabels(state),
-  customNoteFilter: selectors.getCustomNoteFilter(state)
+  pageLabels: selectors.getPageLabels(state)
 });
 
 export default connect(mapStatesToProps)(translate()(NotesPanel));
